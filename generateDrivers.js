@@ -1,8 +1,19 @@
-const { geoToH3 } = require('h3-js');  // Importa la función geoToH3
+const h3 = require('h3-js');
 
 // Función para generar coordenadas aleatorias dentro de un rango
 function getRandomCoordinate(min, max) {
   return Math.random() * (max - min) + min;
+}
+
+// Función para generar un color en escala de grises basado en la frecuencia
+function getColorBasedOnFrequency(frequency) {
+  const maxFrequency = 10; // Supongamos que 10 es la máxima frecuencia posible
+  const intensity = Math.min(frequency / maxFrequency, 1); // Normaliza la frecuencia
+  
+  // Calcular el valor del gris
+  const grayValue = Math.floor(255 * (1 - intensity)); // Menos intensidad, más claro el gris
+
+  return `rgb(${grayValue}, ${grayValue}, ${grayValue})`; // Genera un color RGB en escala de grises
 }
 
 // Coordenadas aproximadas de los límites de São Paulo
@@ -18,20 +29,26 @@ const drivers = [];
 for (let i = 0; i < 1000; i++) {
   const lat = getRandomCoordinate(saoPauloBounds.latMin, saoPauloBounds.latMax);
   const lng = getRandomCoordinate(saoPauloBounds.lngMin, saoPauloBounds.lngMax);
-  drivers.push({ id: `driver${i + 1}`, lat, lng });
+  
+  // Generar la celda H3 central
+  const centralH3Index = h3.geoToH3(lat, lng, 9);
+  
+  // Generar celdas adyacentes usando kRing, que da celdas cercanas o contiguas
+  const numberOfRegions = Math.floor(Math.random() * 3) + 1; // 1 a 3 zonas
+  const nearbyH3Indexes = h3.kRing(centralH3Index, numberOfRegions);
+
+  const regions = nearbyH3Indexes.map(h3Index => {
+    const frequency = Math.floor(Math.random() * 10) + 1; // Frecuencia aleatoria entre 1 y 10
+    const color = getColorBasedOnFrequency(frequency); // Asigna un color basado en la frecuencia
+    return {
+      h3Index,
+      color,
+      frequency
+    };
+  });
+
+  drivers.push({ id: `driver${i + 1}`, regions });
 }
 
-// Definir la resolución H3 (0-15, donde 15 es la mayor resolución)
-const resolution = 9;
-
-// Mapear cada conductor a una celda H3
-const driverZones = drivers.map(driver => {
-  const h3Index = geoToH3(driver.lat, driver.lng, resolution);  // Utiliza la función geoToH3
-  return {
-    ...driver,
-    h3Index
-  };
-});
-
-// Exportar la lista de conductores con zonas H3
-module.exports = driverZones;
+// Exportar la lista de conductores con sus regiones H3, colores y frecuencias
+module.exports = drivers;

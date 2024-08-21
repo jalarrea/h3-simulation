@@ -9,6 +9,7 @@
         #map {
             height: 100vh;
             width: 100%;
+            filter: grayscale(100%); /* Aplica el filtro de escala de grises */
         }
     </style>
 </head>
@@ -24,27 +25,50 @@
     <script>
         const map = L.map('map').setView([-23.55052, -46.633309], 10); // Centro de São Paulo
 
+        // Usar un tile layer estándar y aplicar el filtro CSS
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
+
+        // Icono personalizado en rojo para los marcadores
+        const redIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
+            iconSize: [25, 41], // tamaño del icono
+            iconAnchor: [12, 41], // punto de anclaje del icono
+            popupAnchor: [1, -34], // punto de anclaje del popup relativo al icono
+            shadowSize: [41, 41] // tamaño de la sombra
+        });
 
         // Obtener los datos de los conductores
         fetch('/drivers')
             .then(response => response.json())
             .then(data => {
                 data.forEach(driver => {
-                    // Utilizar h3ToGeoBoundary para obtener las coordenadas del hexágono
-                    const hexBoundary = h3.h3ToGeoBoundary(driver.h3Index).map(coord => [coord[0], coord[1]]);
-                    
-                    L.polygon(hexBoundary, {
-                        color: 'blue',
-                        fillColor: '#3388ff',
-                        fillOpacity: 0.4
-                    }).addTo(map)
-                    .bindPopup(`Driver: ${driver.id}`);
+                    driver.regions.forEach(region => {
+                        const hexBoundary = h3.h3ToGeoBoundary(region.h3Index).map(coord => [coord[0], coord[1]]);
+                        
+                        L.polygon(hexBoundary, {
+                            color: region.color, // Usar el color basado en la frecuencia en escala de grises
+                            fillColor: region.color,
+                            fillOpacity: 0.6
+                        }).addTo(map)
+                        .bindPopup(`Driver: ${driver.id}<br>Region: ${region.h3Index}<br>Frequency: ${region.frequency}`);
+                    });
                 });
             })
             .catch(error => console.error('Error cargando los datos:', error));
+
+        // Obtener los datos de las tiendas
+        fetch('/stores')
+            .then(response => response.json())
+            .then(stores => {
+                stores.forEach(store => {
+                    L.marker([store.lat, store.lng], { icon: redIcon }).addTo(map)
+                        .bindPopup(`Store: ${store.id}`);
+                });
+            })
+            .catch(error => console.error('Error cargando los datos de las tiendas:', error));
     </script>
 </body>
 </html>
