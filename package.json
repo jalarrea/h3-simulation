@@ -1,0 +1,25 @@
+{
+  "name": "h3-simulation",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalarrea/h3-simulation.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jalarrea/h3-simulation/issues"
+  },
+  "homepage": "https://github.com/jalarrea/h3-simulation#readme",
+  "keywords": [],
+  "description": "",
+  "dependencies": {
+    "express": "^4.19.2",
+    "h3-js": "^3.7.1",
+    "leaflet": "^1.9.4"
+  }
+}
