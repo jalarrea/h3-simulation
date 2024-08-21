@@ -5,15 +5,20 @@ function getRandomCoordinate(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-// Función para generar un color en escala de grises basado en la frecuencia
-function getColorBasedOnFrequency(frequency) {
-  const maxFrequency = 10; // Supongamos que 10 es la máxima frecuencia posible
-  const intensity = Math.min(frequency / maxFrequency, 1); // Normaliza la frecuencia
-  
-  // Calcular el valor del gris
-  const grayValue = Math.floor(255 * (1 - intensity)); // Menos intensidad, más claro el gris
+// Función para generar un color basado en la densidad, de gris a azul
+function getColorBasedOnDensity(density) {
+  const maxDensity = 10; // Supongamos que 10 es la máxima densidad posible
+  const intensity = Math.min(density / maxDensity, 1); // Normaliza la densidad
 
-  return `rgb(${grayValue}, ${grayValue}, ${grayValue})`; // Genera un color RGB en escala de grises
+  if (intensity < 0.5) {
+    // Para densidades bajas, usar escala de grises
+    const grayValue = Math.floor(255 * (1 - intensity * 2)); // Escala de gris
+    return `rgb(${grayValue}, ${grayValue + 10}, ${grayValue + 10})`;
+  } else {
+    // Para densidades más altas, usar tonos de azul
+    const blueValue = Math.floor(50 * ((intensity - 0.2) * 1)); // Escala de azul
+    return `rgb(0, 0, ${blueValue})`;
+  }
 }
 
 // Coordenadas aproximadas de los límites de São Paulo
@@ -38,17 +43,17 @@ for (let i = 0; i < 1000; i++) {
   const nearbyH3Indexes = h3.kRing(centralH3Index, numberOfRegions);
 
   const regions = nearbyH3Indexes.map(h3Index => {
-    const frequency = Math.floor(Math.random() * 10) + 1; // Frecuencia aleatoria entre 1 y 10
-    const color = getColorBasedOnFrequency(frequency); // Asigna un color basado en la frecuencia
+    const density = Math.floor(Math.random() * 10) + 1; // Densidad aleatoria entre 1 y 10
+    const color = getColorBasedOnDensity(density); // Asigna un color basado en la densidad
     return {
       h3Index,
       color,
-      frequency
+      density
     };
   });
 
   drivers.push({ id: `driver${i + 1}`, regions });
 }
 
-// Exportar la lista de conductores con sus regiones H3, colores y frecuencias
+// Exportar la lista de conductores con sus regiones H3, colores y densidades
 module.exports = drivers;

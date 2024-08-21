@@ -9,7 +9,21 @@
         #map {
             height: 100vh;
             width: 100%;
-            filter: grayscale(100%); /* Aplica el filtro de escala de grises */
+        }
+
+        /* Aplicar filtro de escala de grises solo a los tiles del mapa */
+        .leaflet-tile {
+            filter: grayscale(100%);
+        }
+
+        .marker-label {
+            font-size: 12px;
+            font-weight: bold;
+            background: white;
+            border: 1px solid gray;
+            margin-top: -50px;
+            padding: 10px;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -23,9 +37,9 @@
     <script src="https://unpkg.com/h3-js@3.7.1/dist/h3-js.umd.js"></script>
     
     <script>
-        const map = L.map('map').setView([-23.55052, -46.633309], 10); // Centro de São Paulo
+        const map = L.map('map').setView([-23.55052, -46.633309], 14); // Centro de São Paulo
 
-        // Usar un tile layer estándar y aplicar el filtro CSS
+        // Usar un tile layer estándar
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
@@ -49,11 +63,13 @@
                         const hexBoundary = h3.h3ToGeoBoundary(region.h3Index).map(coord => [coord[0], coord[1]]);
                         
                         L.polygon(hexBoundary, {
-                            color: region.color, // Usar el color basado en la frecuencia en escala de grises
+                            color: "rgb(150, 150, 150)",//region.color, // Usar el color basado en la densidad
+                            weight: 1, // Grosor del borde del polígono
+                            opacity: 0.7,
                             fillColor: region.color,
-                            fillOpacity: 0.6
+                            fillOpacity: 0.4
                         }).addTo(map)
-                        .bindPopup(`Driver: ${driver.id}<br>Region: ${region.h3Index}<br>Frequency: ${region.frequency}`);
+                        .bindPopup(`Driver: ${driver.id}<br>Region: ${region.h3Index}<br>Density: ${region.density}`);
                     });
                 });
             })
@@ -63,9 +79,15 @@
         fetch('/stores')
             .then(response => response.json())
             .then(stores => {
-                stores.forEach(store => {
-                    L.marker([store.lat, store.lng], { icon: redIcon }).addTo(map)
-                        .bindPopup(`Store: ${store.id}`);
+                stores.forEach((store, index) => {
+                    const marker = L.marker([store.lat, store.lng], { icon: redIcon }).addTo(map);
+                    
+                    // Agregar un label numerado al marker
+                    marker.bindTooltip(`Loja ${index + 1}`, {
+                        permanent: true, // El label será permanente
+                        direction: 'top', // Coloca el label sobre el marker
+                        className: 'marker-label' // Clase CSS para el estilo
+                    }).openTooltip();
                 });
             })
             .catch(error => console.error('Error cargando los datos de las tiendas:', error));

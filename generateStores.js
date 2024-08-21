@@ -13,7 +13,7 @@ const saoPauloBounds = {
 
 // Generar 20 tiendas con ubicaciones aleatorias en São Paulo
 const stores = [];
-for (let i = 0; i < 20; i++) {
+for (let i = 0; i < 500; i++) {
   const lat = getRandomCoordinate(saoPauloBounds.latMin, saoPauloBounds.latMax);
   const lng = getRandomCoordinate(saoPauloBounds.lngMin, saoPauloBounds.lngMax);
   stores.push({ id: `store${i + 1}`, lat, lng });
